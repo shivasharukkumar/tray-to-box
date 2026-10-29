@@ -555,7 +555,13 @@ def build_cell_layout():
 
 def main():
     cad_dir = os.path.dirname(os.path.abspath(__file__))
-    print(f"Generating CAD models in STL format (Primary for ABB RobotStudio): {cad_dir}\n")
+    project_root = os.path.dirname(cad_dir)
+    stl_dir = os.path.join(project_root, "STL")
+    os.makedirs(stl_dir, exist_ok=True)
+
+    print(f"Generating CAD models...")
+    print(f"  Primary STL Destination Folder: {stl_dir}")
+    print(f"  CAD Archive Folder:             {cad_dir}\n")
 
     generators = [
         ("Feeder_Tray", build_feeder_tray),
@@ -570,22 +576,27 @@ def main():
         print(f"  Building {name}...")
         mesh = gen_fn()
         
-        # Primary Export: Binary STL (Fast, compact, native in all RobotStudio versions)
-        stl_path = os.path.join(cad_dir, f"{name}.stl")
-        mesh.export_stl_binary(stl_path)
-        print(f"    -> [PRIMARY] Exported Binary STL: {stl_path} ({len(mesh.triangles)} facets, {len(mesh.vertices)} vertices)")
+        # 1. Primary Binary STL -> Saved into dedicated STL/ folder
+        stl_path_dedicated = os.path.join(stl_dir, f"{name}.stl")
+        mesh.export_stl_binary(stl_path_dedicated)
+        print(f"    -> [DEDICATED STL FOLDER] {stl_path_dedicated} ({len(mesh.triangles)} facets, {len(mesh.vertices)} vertices)")
 
-        # Secondary Export: ASCII STL (Human-readable 3D mesh)
-        stl_ascii_path = os.path.join(cad_dir, f"{name}_ascii.stl")
+        # Also save in CAD folder
+        stl_path_cad = os.path.join(cad_dir, f"{name}.stl")
+        mesh.export_stl_binary(stl_path_cad)
+
+        # 2. ASCII STL -> Saved in both STL/ and CAD/
+        stl_ascii_path = os.path.join(stl_dir, f"{name}_ascii.stl")
         mesh.export_stl_ascii(stl_ascii_path)
-        print(f"    -> Exported ASCII STL:  {stl_ascii_path}")
+        mesh.export_stl_ascii(os.path.join(cad_dir, f"{name}_ascii.stl"))
 
-        # Secondary Export: STEP AP214/AP203 Faceted B-Rep
+        # 3. STEP AP214/AP203 Faceted B-Rep in CAD/ folder
         step_path = os.path.join(cad_dir, f"{name}.step")
         mesh.export_step(step_path)
-        print(f"    -> Exported STEP:       {step_path}")
+        print(f"    -> [STEP ARCHIVE]        {step_path}")
 
-    print("\nAll CAD models successfully generated in STL format for direct ABB RobotStudio import!")
+    print(f"\nSUCCESS: All STL models gathered in one single folder:")
+    print(f"  --> {stl_dir}")
 
 
 if __name__ == "__main__":
