@@ -1,0 +1,88 @@
+================================================================================
+ABB ROBOTSTUDIO WORK CELL SIGNALS CONFIGURATION & INTERFACE MANUAL
+PROJECT 18 — AUTOMATED TRAY-TO-BOX PACKING ROBOTIC WORK CELL
+================================================================================
+
+1. OVERVIEW & SIGNAL BUS ARCHITECTURE
+--------------------------------------------------------------------------------
+This project utilizes a virtual industrial I/O system configured on the internal
+Virtual Local Bus of the ABB Virtual Controller (IRC5 / OmniCore). The signal 
+mapping mimics industrial 24 VDC PNP digital I/O modules (e.g., ABB DSQC 652).
+
+Controller Bus: Virtual
+I/O Device Unit: Virtual_IO_Board (Address 0, 16 bits In / 16 bits Out)
+
+
+2. DIGITAL INPUT SIGNALS SPECIFICATION (Sensors -> Robot Controller)
+--------------------------------------------------------------------------------
+| Signal Name      | Type | Device Map | Default | Functional Description                                              |
+|------------------|------|------------|---------|---------------------------------------------------------------------|
+| diTrayReady      | DI   | 0          | 0       | Feeder tray loaded and clamped in position.                         |
+| diPartPresent    | DI   | 1          | 0       | Workpiece confirmed present in active pick slot via optical sensor. |
+| diBoxPresent     | DI   | 2          | 0       | Empty packing box stopped & verified at packing station stop blade. |
+| diGripConfirmed  | DI   | 3          | 0       | Vacuum pressure switch threshold achieved (<-75 kPa).               |
+| diBoxExitClear   | DI   | 4          | 1       | Outfeed conveyor exit zone free of obstructions.                    |
+| diEmergencyStop  | DI   | 5          | 1       | Dual-channel safety circuit status (1 = Healthy, 0 = Tripped).      |
+| diCellGateClosed | DI   | 6          | 1       | Safety fence interlock door closed and locked (1 = Closed).         |
+
+
+3. DIGITAL OUTPUT SIGNALS SPECIFICATION (Robot Controller -> Field Actuators)
+--------------------------------------------------------------------------------
+| Signal Name        | Type | Device Map | Default | Functional Description                                            |
+|--------------------|------|------------|---------|-------------------------------------------------------------------|
+| doVacuumOn         | DO   | 0          | 0       | Energize 5/2 vacuum ejector solenoid valve (solenoid ON).         |
+| doInfeedRun        | DO   | 1          | 0       | Run infeed conveyor motor to index empty box into cell.           |
+| doOutfeedRun       | DO   | 2          | 0       | Run outfeed conveyor motor to transport full box out of cell.     |
+| doBoxFull          | DO   | 3          | 0       | Status flag indicating 4 parts placed in active box.              |
+| doCycleComplete    | DO   | 4          | 0       | Cycle strobe pulsed upon successful discharge of full box.        |
+| doReplenishTray    | DO   | 5          | 0       | Pulse command to Feeder Smart Component to spawn 4 parts.         |
+| doRobotInHome      | DO   | 6          | 1       | Safety zone signal: robot is at pHome safe standby position.      |
+| doRobotInFeederZone| DO   | 7          | 0       | Safety zone signal: robot arm is inside feeder station perimeter. |
+| doRobotInBoxZone   | DO   | 8          | 0       | Safety zone signal: robot arm is inside packing conveyor zone.    |
+| doStopBladeLower   | DO   | 9          | 0       | Actuate pneumatic cylinder to retract mechanical box stop blade.  |
+| doCellAlarm        | DO   | 10         | 0       | Workcell warning / fault strobe for annunciator stack light.       |
+
+
+4. ROBOTSTUDIO STATION LOGIC CONNECTIONS
+--------------------------------------------------------------------------------
+The Virtual Controller I/O signals map directly to RobotStudio Smart Components
+inside the Station Logic environment as follows:
+
+A. Vacuum Gripper Handshake:
+   [Controller: doVacuumOn] ----> [SC_VacuumGripper: Execute (Attacher)]
+   [SC_VacuumGripper: SensorTriggered] AND [Controller: doVacuumOn]
+                            ----> [Delay 150ms] ----> [Controller: diGripConfirmed]
+   [Controller: NOT doVacuumOn] -> [SC_VacuumGripper: Execute (Detacher)]
+
+B. Feeder Tray Handshake:
+   [Controller: doReplenishTray] -> [SC_FeederStation: Source.Execute]
+   [SC_FeederStation: 4 Parts Present] -> [Controller: diTrayReady]
+   [SC_FeederStation: Slot Part Detector] -> [Controller: diPartPresent]
+
+C. Conveyor & Box Replacement Handshake:
+   [Controller: doInfeedRun] ---> [SC_Conveyor: Infeed_LinearMover.Execute]
+   [SC_Conveyor: PlaneSensor_BoxStop] -> [Controller: diBoxPresent]
+   [Controller: diBoxPresent] -> [NOT] -> [SC_Conveyor: Infeed_LinearMover.Execute]
+   [Controller: doStopBladeLower] AND [Controller: doOutfeedRun]
+                            ---> [SC_Conveyor: Outfeed_LinearMover.Execute]
+   [SC_Conveyor: PlaneSensor_ExitClear] -> [Controller: diBoxExitClear]
+
+D. Safety Interlocks:
+   - Conveyor movement is hard-interlocked: `doInfeedRun` and `doOutfeedRun` CANNOT
+     activate if `doRobotInBoxZone` is TRUE.
+   - Robot motion into Box Packing Zone is prohibited unless `diBoxPresent` is TRUE
+     and `doInfeedRun` / `doOutfeedRun` are both FALSE.
+
+
+5. FAULT CONDITIONS & TIMEOUTS
+--------------------------------------------------------------------------------
+1. Vacuum Grip Lost Fault (Error Code 101):
+   If `diGripConfirmed` drops to FALSE during transfer from Feeder to Box, the robot
+   immediately halts linear motion, raises `doCellAlarm`, and enters safe retreat.
+2. Box Feed Timeout Fault (Error Code 102):
+   If `diBoxPresent` fails to assert within 12.0 seconds after `doInfeedRun` is set,
+   the infeed conveyor shuts down to prevent motor overload and an operator alarm triggers.
+3. Tray Empty Fault (Error Code 103):
+   If `diPartPresent` is missing when attempting a pick, `doReplenishTray` is pulsed.
+   If parts are still not detected within 5.0 seconds, execution suspends.
+================================================================================
