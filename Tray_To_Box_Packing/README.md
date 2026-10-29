@@ -7,19 +7,20 @@
 
 ```
 Tray_To_Box_Packing/
+├── STL/                             # ALL WORKCELL 3D MODELS IN ONE DEDICATED FOLDER
+│   ├── Feeder_Tray.stl              # 4-cavity 2x2 tray (220 x 220 x 35 mm, pitch 90 mm)
+│   ├── Packing_Box.stl              # 4-compartment 2x2 box (240 x 240 x 65 mm, pitch 100 mm)
+│   ├── Product.stl                  # Workpiece (45 x 45 x 30 mm, top chamfer, vacuum face)
+│   ├── Vacuum_Gripper.stl           # Custom vacuum gripper (ISO 9409-1-50-4-M6, TCP Z = 105 mm)
+│   ├── Conveyor_Components.stl      # Infeed/Outfeed dual conveyor bed, stop blade, rails
+│   └── Cell_Layout_Assembly.stl     # Full cell assembly (Pedestal, Fence, Cabinet, Feeder Stand)
 ├── CAD/
-│   ├── Feeder_Tray.step             # 4-cavity 2x2 tray (220 x 220 x 35 mm, pitch 90 mm)
-│   ├── Feeder_Tray.stl              # Binary STL for direct RobotStudio drag-and-drop
-│   ├── Packing_Box.step             # 4-compartment 2x2 box (240 x 240 x 65 mm, pitch 100 mm)
-│   ├── Packing_Box.stl              # Binary STL
-│   ├── Product.step                 # Workpiece (45 x 45 x 30 mm, top chamfer, vacuum face)
-│   ├── Product.stl                  # Binary STL
-│   ├── Vacuum_Gripper.step          # Custom vacuum gripper (ISO 9409-1-50-4-M6, TCP Z = 105 mm)
-│   ├── Vacuum_Gripper.stl           # Binary STL
-│   ├── Conveyor_Components.step     # Infeed/Outfeed dual conveyor bed, stop blade, rails
-│   ├── Conveyor_Components.stl      # Binary STL
-│   ├── Cell_Layout_Assembly.step    # Full cell assembly (Pedestal, Fence, Cabinet, Feeder Stand)
-│   ├── Cell_Layout_Assembly.stl     # Binary STL
+│   ├── Feeder_Tray.step             # STEP archive models
+│   ├── Packing_Box.step
+│   ├── Product.step
+│   ├── Vacuum_Gripper.step
+│   ├── Conveyor_Components.step
+│   ├── Cell_Layout_Assembly.step
 │   ├── generate_cad_models.py       # Standalone Python 3 geometry generator (AP214 STEP & STL)
 │   └── generate_freecad_models.py   # Parametric FreeCAD automation script
 ├── RAPID/
@@ -46,11 +47,11 @@ Tray_To_Box_Packing/
 1. **Launch RobotStudio** and create an empty station:
    - Add **ABB IRB 1200-7/0.7** robot from the ABB Library.
    - Create a Virtual Controller from the layout (`RobotWare 6.x` or `7.x`).
-2. **Import CAD Geometry (Native STL Format)**:
-   - In RobotStudio, click **Import Geometry** and select the `.stl` files from `CAD/` (no CAD converter license required).
+2. **Import CAD Geometry (From the `STL/` Folder)**:
+   - In RobotStudio, click **Import Geometry** and select the `.stl` files from `STL/` (no CAD converter license required).
    - Place them at the coordinates specified in [Setup_Guide.md](file:///d:/projects/tray%20to%20box/Tray_To_Box_Packing/RobotStudio/Setup_Guide.md).
 3. **Configure End-Effector Tool**:
-   - Create Tool `tVacuumGripper` from `CAD/Vacuum_Gripper.stl`.
+   - Create Tool `tVacuumGripper` from `STL/Vacuum_Gripper.stl`.
    - Set TCP to `X = 0.0, Y = 0.0, Z = 105.0 mm` and attach it to the robot flange.
 4. **Load Virtual Controller Signals**:
    - Under Controller tab -> Configuration -> **Load Parameters** -> Select [EIO.cfg](file:///d:/projects/tray%20to%20box/Tray_To_Box_Packing/RAPID/EIO.cfg).

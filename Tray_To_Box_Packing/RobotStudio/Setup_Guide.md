@@ -32,19 +32,20 @@ This document provides complete, step-by-step instructions for commissioning the
 
 ---
 
-### Step 2.2 — Import CAD Geometries into Station (Using Native STL Format)
-Import the native STL 3D models generated in the `CAD/` folder directly into RobotStudio:
+### Step 2.2 — Import CAD Geometries into Station (From the Dedicated `STL/` Folder)
+All 3D models are neatly organized into one single dedicated folder: `Tray_To_Box_Packing/STL/`.
 
 > [!NOTE]
 > **Why STL?** STL (Stereolithography) format is natively supported across all editions of ABB RobotStudio without requiring any optional CAD Converter Add-In license. Binary STL files provide high polygon fidelity and optimal simulation performance.
 
 1. Under the **Home** tab, click **Import Geometry -> Browse**:
-   - Select `CAD/Vacuum_Gripper.stl` (or `Vacuum_Gripper.step`)
-   - Select `CAD/Feeder_Tray.stl` (or `Feeder_Tray.step`)
-   - Select `CAD/Packing_Box.stl` (or `Packing_Box.step`)
-   - Select `CAD/Product.stl` (or `Product.step`)
-   - Select `CAD/Conveyor_Components.stl` (or `Conveyor_Components.step`)
-   - Select `CAD/Cell_Layout_Assembly.stl` (or `Cell_Layout_Assembly.step`)
+   - Navigate to `Tray_To_Box_Packing/STL/`
+   - Select `STL/Vacuum_Gripper.stl`
+   - Select `STL/Feeder_Tray.stl`
+   - Select `STL/Packing_Box.stl`
+   - Select `STL/Product.stl`
+   - Select `STL/Conveyor_Components.stl`
+   - Select `STL/Cell_Layout_Assembly.stl`
 2. In the Layout tree, set the exact **World Coordinate Transforms** for each component:
 
 | Component Name | Position X (mm) | Position Y (mm) | Position Z (mm) | Orientation (Rx, Ry, Rz) |

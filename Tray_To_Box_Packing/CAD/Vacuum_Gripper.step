@@ -1,7 +1,7 @@
 ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('RobotStudio Industrial Work Cell Component: Vacuum_Gripper','2;1'),'2;1');
-FILE_NAME('Vacuum_Gripper.step','2026-10-29T09:06:03',('ABB Automation Specialist'),('Advanced Robotics'),'Antigravity CAD Engine','ABB RobotStudio 2026','');
+FILE_NAME('Vacuum_Gripper.step','2026-10-29T09:13:28',('ABB Automation Specialist'),('Advanced Robotics'),'Antigravity CAD Engine','ABB RobotStudio 2026','');
 FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }'));
 ENDSEC;
 DATA;
